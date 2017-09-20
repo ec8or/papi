@@ -219,11 +219,8 @@ module.exports = function(robot) {
     robot.respond(/new bag/i, function(msg){
         if (!robot.brain.get('totalCupsByUser')) {
             // init MOVE ALL OF THESE
+            console.log('init total cups')
             totalCupsByUser = {}
-        } else {
-            // retrieving users cups
-            totalCupsByUser = robot.brain.get('totalCupsByUser')
-            totalCupsByUser = JSON.parse(totalCupsByUser)
         }
         if (!robot.brain.get('totalOwedByUser')) {
             // init MOVE ALL OF THESE
@@ -236,34 +233,20 @@ module.exports = function(robot) {
             totalOwedByUser = robot.brain.get('totalCupsByUser')
             totalOwedByUser = JSON.parse(totalOwedByUser)
         }
-        if (robot.brain.get('totalBrewsByUser')) {
-            totalBrewsByUser = robot.brain.get('totalBrewsByUser')
-            totalBrewsByUser = JSON.parse(totalBrewsByUser)
-            
+        if (robot.brain.get('totalOwedByUser')) {
+           
             totalOwedByUser = robot.brain.get('totalOwedByUser')
             totalOwedByUser = JSON.parse(totalOwedByUser)
             
-            console.log(totalBrewsByUser)
             msg.send("FRESH COFFEE YES! Time to pay up! :coffee:")
             msg.send(":moneybag::moneybag::moneybag::moneybag::moneybag: ")
-            for (var drinker in totalBrewsByUser) {
+            for (var drinker in totalOwedByUser) {
                 // Calculate payment
                 payment = parseFloat(totalOwedByUser[drinker])
-                console.log(payment)
                 if (payment > 0) {
-                    msg.send("" + drinker + ": " + totalBrewsByUser[drinker] + " cups = £" + payment.toFixed(2))
-                    // Update totals
-                    if (totalCupsByUser[drinker]) {
-                        totalCupsByUser[drinker] = totalCupsByUser[drinker] + totalBrewsByUser[drinker]
-                    } else {
-                        totalCupsByUser[drinker] = totalBrewsByUser[drinker]
-                    }
+                    msg.send("" + drinker + ": £" + payment.toFixed(2))
                 }
             }
-            totalCupsByUserJSON = JSON.stringify(totalCupsByUser)
-            robot.brain.set('totalCupsByUser', totalCupsByUserJSON)
-            totalBrewsByUserJSON = JSON.stringify(totalBrewsByUser)
-            robot.brain.set('totalBrewsByUser', totalBrewsByUserJSON)
         } else {
             msg.send("You haven't had any coffee yet!")  
         }
@@ -287,7 +270,8 @@ module.exports = function(robot) {
                 totalOwedByUser = JSON.parse(totalOwedByUser)
 
                 for (var drinker in totalCupsByUser) {
-                    msg.send("" + drinker + ": " + totalCupsByUser[drinker] + " cups " + totalBrewsByUser[drinker] + " brews Owes: :moneybag: £" +  parseFloat(totalOwedByUser[drinker]).toFixed(2))
+                    var totalCups = totalCupsByUser[drinker] + totalBrewsByUser[drinker]
+                    msg.send("" + drinker + ": " + totalCups + " cups of coffee consumed, Owes: :moneybag: £" +  parseFloat(totalOwedByUser[drinker]).toFixed(2))
                 } 
             }
         }, 500)
