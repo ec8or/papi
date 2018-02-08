@@ -10,22 +10,34 @@ module.exports = function(robot) {
 
     var totalStarts
 
+    var beans = 1
+
     // Initialise a new round of coffee
     robot.respond(/coffee time|covfefe time/i, function(res) {
-        if (!isBrewing) {
-            user = res.message.user.name
-            brewer = user
-            drinkers.push(user)
-            isBrewing = 1
-            res.send(":coffee::coffee::coffee::coffee::coffee::coffee:")
-            robot.messageRoom("#coffee-club", "<!channel> yes " + res.message.user.name + ", coffee coming up! Who wants a cup? You got " + timeout + " minutes to join by typing `@papi me`")
-            countdown = setInterval(function() {
-                checkCups(res)
-            }, 60000)
+        if (beans) {
+            if (!isBrewing) {
+                user = res.message.user.name
+                brewer = user
+                drinkers.push(user)
+                isBrewing = 1
+                res.send(":coffee::coffee::coffee::coffee::coffee::coffee:")
+                robot.messageRoom("#coffee-club", "<!channel> yes " + res.message.user.name + ", coffee coming up! Who wants a cup? You got " + timeout + " minutes to join by typing `@papi me`")
+                countdown = setInterval(function() {
+                    checkCups(res)
+                }, 60000)
+            } else {
+                res.send(brewer + " is already making coffee, get in by typing `@papi me`")
+            }
         } else {
-            res.send(brewer + " is already making coffee, get in by typing `@papi me`")
+            res.send(":scream_cat: NO BEANS! :sob:")
         }
     })
+
+    // Toggle beans
+    robot.respond(/no beans/i, function(res) {
+        res.send("ok... :anguished:")
+        beans = 0
+    })    
 
     // Add current user to the round
     robot.respond(/me/i, function(res) {
@@ -80,8 +92,8 @@ module.exports = function(robot) {
         if (timeout <= 0) {
             water = drinkers.length * 2
             coffee = drinkers.length * 1
-            if (drinkers.length < 4) {
-                coffee = coffee
+            if (drinkers.length <= 4) {
+                coffee = coffee + 0.5;
             } else {
                 coffee = coffee
             }
@@ -92,17 +104,12 @@ module.exports = function(robot) {
                 console.log("length: " + drinkers.length)
                 console.log(rand)
                 var brewer = drinkers[rand]
-                res.send("It's " + brewer + "!!! :star2: :kissing_closed_eyes: :+1::+1::+1:")
+                res.send("It's @" + brewer + "!!! :star2: :kissing_closed_eyes: :+1::+1::+1:")
             },3500)
             setTimeout(function() {
                 res.send("(water level at: " + water + ", set grinder to: " + coffee + " cups)")
                 resetBrew()
             },4500)
-            //if (Math.floor(Math.random() * 11) > 6) {
-                //setTimeout(function() {
-                    //res.send("I miss nils :heart: :crying_cat_face:")
-                //},60000)
-            //}
         } else {
             res.send("" + timeout + " minutes to go... " + cupsRemaining + " cups remaining...")
         }
@@ -189,7 +196,7 @@ module.exports = function(robot) {
             totalOwedByUser = JSON.parse(totalOwedByUser)
 
             if (totalOwedByUser[user]) {
-                res.send(":money_mouth_face: £" + totalOwedByUser[user] + " please...")
+                res.send(":money_mouth_face: £" + totalOwedByUser[user].toFixed(2) + " please...")
             } else {
                 res.send("You don't owe me anything! :disappointed: ")
             }
@@ -217,6 +224,7 @@ module.exports = function(robot) {
     // Inform everyone that there's a new bag of coffee and poke them for payments
     // TODO: Total brews are a bit confusing since the refactor
     robot.respond(/new bag/i, function(msg){
+        beans = 1
         if (!robot.brain.get('totalCupsByUser')) {
             // init MOVE ALL OF THESE
             console.log('init total cups')
